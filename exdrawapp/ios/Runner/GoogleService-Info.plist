@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>851559520664-e9junv4hvlph6192ffdg3s4i9tltim9p.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.851559520664-e9junv4hvlph6192ffdg3s4i9tltim9p</string>
+	<key>API_KEY</key>
+	<string>AIzaSyAIPAvLrXdIStyFS_qhKgAgV95RQiakvIc</string>
+	<key>GCM_SENDER_ID</key>
+	<string>851559520664</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.example.exdrawapp</string>
+	<key>PROJECT_ID</key>
+	<string>stereoexdrive</string>
+	<key>STORAGE_BUCKET</key>
+	<string>stereoexdrive.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:851559520664:ios:28dcdc8ba2d5c462d533ed</string>
+	<key>DATABASE_URL</key>
+	<string>https://stereoexdrive.firebaseio.com</string>
+</dict>
+</plist>
