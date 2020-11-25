@@ -23,7 +23,7 @@ class _PaintPageState extends State<PaintPage> {
        * AppBar
        */
       appBar: AppBar(
-        title: Text('ペイント'),
+        title: Text('StereoDisplayEx'),
         centerTitle: true,
       ),
 
