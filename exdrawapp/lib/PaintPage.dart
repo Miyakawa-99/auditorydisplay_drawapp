@@ -1,15 +1,20 @@
 import 'package:flutter/material.dart';
 import 'Painter.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:googleapis/drive/v3.dart';
-//import 'dart:async';
+import 'dart:async';
 import 'dart:convert' show json;
-import 'package:http/http.dart';
+import "package:http/http.dart" as http;
 
-GoogleSignIn _googleSignIn = new GoogleSignIn(
+// GoogleSignIn _googleSignIn = new GoogleSignIn(
+//   scopes: <String>[
+//     DriveApi.DriveFileScope,
+//     DriveApi.DriveAppdataScope,
+//   ],
+// );
+GoogleSignIn _googleSignIn = GoogleSignIn(
   scopes: <String>[
-    DriveApi.DriveFileScope,
-    DriveApi.DriveAppdataScope,
+    'email',
+    'https://www.googleapis.com/auth/contacts.readonly',
   ],
 );
 
@@ -28,6 +33,7 @@ class _PaintPageState extends State<PaintPage> {
   // コントローラ
   PaintController _controller = PaintController();
   GoogleSignInAccount _currentUser;
+  String _contactText;
 
   @override
   void initState() {
@@ -37,79 +43,60 @@ class _PaintPageState extends State<PaintPage> {
         _currentUser = account;
       });
       if (_currentUser != null) {
-        print("logined");
-        _handleGetFiles();
+        _handleGetContact();
       }
     });
     _googleSignIn.signInSilently();
   }
 
-  Future<Null> _handleGetFiles() async {
-    final Response response = await get(
-      'https://www.googleapis.com/drive/v3/files',
+  Future<void> _handleGetContact() async {
+    setState(() {
+      _contactText = "Loading contact info...";
+    });
+    final http.Response response = await http.get(
+      'https://people.googleapis.com/v1/people/me/connections'
+      '?requestMask.includeField=person.names',
       headers: await _currentUser.authHeaders,
     );
     if (response.statusCode != 200) {
-      print('Drive API ${response.statusCode} response: ${response.body}');
+      setState(() {
+        _contactText = "People API gave a ${response.statusCode} "
+            "response. Check logs for details.";
+      });
+      print('People API ${response.statusCode} response: ${response.body}');
       return;
     }
     final Map<String, dynamic> data = json.decode(response.body);
-    var tmpItemList = <Widget>[];
-    var size = MediaQuery.of(context).size;
-    var margin = 10;
-    var photoWidth = size.width - margin;
-    var photoHeight = 200.0;
-    for (var i = 0; i < data['files'].length; i++) {
-      print(data['files'][i]['name']);
-      print(data['files'][i]['id']);
-      tmpItemList.add(Column(children: <Widget>[
-        Text(data['files'][i]['name'],
-            style: TextStyle(
-              color: Colors.grey,
-              fontSize: 24.0,
-              fontWeight: FontWeight.bold,
-            )),
-        GestureDetector(
-            child: Card(
-              child: Center(
-                  child: FadeInImage(
-                placeholder: AssetImage('images/placeholder.png'),
-                image: NetworkImage(
-                    "https://www.googleapis.com/drive/v3/files/" +
-                        data['files'][i]['id'] +
-                        "?alt=media",
-                    headers: await _googleSignIn.currentUser.authHeaders),
-                fadeOutDuration: new Duration(milliseconds: 300),
-                fadeOutCurve: Curves.decelerate,
-                height: photoHeight,
-                width: photoWidth,
-                fit: BoxFit.fitWidth,
-              )),
-              elevation: 3.0,
-            ),
-            onTap: () async {
-              var headers = await _googleSignIn.currentUser.authHeaders;
-              // Navigator.push(
-              //   context,
-              //   MaterialPageRoute(
-              //       builder: (context) =>
-              //           DetailScreen(data['files'][i], headers)),
-              // );
-            }),
-      ]));
-    }
-
-    // replace listview content
+    final String namedContact = _pickFirstNamedContact(data);
     setState(() {
-      if (tmpItemList.length > 0) {
-        itemList = tmpItemList;
-//        listView = ListView(children: itemList);
+      if (namedContact != null) {
+        _contactText = "I see you know $namedContact!";
+      } else {
+        _contactText = "No contacts to display.";
       }
     });
   }
 
+  String _pickFirstNamedContact(Map<String, dynamic> data) {
+    final List<dynamic> connections = data['connections'];
+    final Map<String, dynamic> contact = connections?.firstWhere(
+      (dynamic contact) => contact['names'] != null,
+      orElse: () => null,
+    );
+    if (contact != null) {
+      final Map<String, dynamic> name = contact['names'].firstWhere(
+        (dynamic name) => name['displayName'] != null,
+        orElse: () => null,
+      );
+      if (name != null) {
+        return name['displayName'];
+      }
+    }
+    return null;
+  }
+
   // google sign in
-  Future<Null> _handleSignIn() async {
+  Future<void> _handleSignIn() async {
     try {
       await _googleSignIn.signIn();
     } catch (error) {
@@ -117,42 +104,103 @@ class _PaintPageState extends State<PaintPage> {
     }
   }
 
-  var itemList = <Widget>[
-    Center(
-        child: Padding(
-            padding: EdgeInsets.only(top: 300.0),
-            child: Text("No Report to display",
-                style: TextStyle(
-                  color: Colors.grey,
-                  fontSize: 24.0,
-                  fontWeight: FontWeight.bold,
-                )))),
-  ];
-  var listView;
+  Future<void> _handleSignOut() => _googleSignIn.disconnect();
+
+  Widget _buildBody() {
+    if (_currentUser != null) {
+      return Container(
+        child: Painter(
+          paintController: _controller,
+        ),
+      );
+    } else {
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: <Widget>[
+          const Text("You are not currently signed in."),
+          RaisedButton(
+            child: const Text('SIGN IN'),
+            onPressed: _handleSignIn,
+          ),
+        ],
+      );
+    }
+  }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       /*
+//        * AppBar
+//        */
+//       appBar: AppBar(
+//         title: Text('StereoDisplayEx'),
+//         centerTitle: true,
+//       ),
+
+//       /*
+//        * body
+//        */
+//       body: Container(
+//         child: Painter(
+//           paintController: _controller,
+//         ),
+//       ),
+
+//       /*
+//        * floatingActionButton
+//        */
+//       floatingActionButton: Column(
+//         mainAxisAlignment: MainAxisAlignment.end,
+//         children: <Widget>[
+//           // undoボタン
+//           FloatingActionButton(
+//             heroTag: "undo",
+//             onPressed: () {
+//               if (_controller.canUndo) _controller.undo();
+//             },
+//             child: Text("undo"),
+//           ),
+
+//           SizedBox(
+//             height: 20.0,
+//           ),
+
+//           // redoボタン
+//           FloatingActionButton(
+//             heroTag: "redo",
+//             onPressed: () {
+//               if (_controller.canRedo) _controller.redo();
+//             },
+//             child: Text("redo"),
+//           ),
+
+//           SizedBox(
+//             height: 20.0,
+//           ),
+
+//           // クリアボタン
+//           FloatingActionButton(
+//             heroTag: "clear",
+//             onPressed: () => _controller.clear(),
+//             child: Text("clear"),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+// }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      /*
-       * AppBar
-       */
       appBar: AppBar(
-        title: Text('StereoDisplayEx'),
-        centerTitle: true,
+        title: const Text('Google Sign In'),
       ),
-
-      /*
-       * body
-       */
-      body: Container(
-        child: Painter(
-          paintController: _controller,
-        ),
+      body: ConstrainedBox(
+        constraints: const BoxConstraints.expand(),
+        child: _buildBody(),
       ),
-
-      /*
-       * floatingActionButton
-       */
       floatingActionButton: Column(
         mainAxisAlignment: MainAxisAlignment.end,
         children: <Widget>[
