@@ -127,70 +127,6 @@ class _PaintPageState extends State<PaintPage> {
     }
   }
 
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       /*
-//        * AppBar
-//        */
-//       appBar: AppBar(
-//         title: Text('StereoDisplayEx'),
-//         centerTitle: true,
-//       ),
-
-//       /*
-//        * body
-//        */
-//       body: Container(
-//         child: Painter(
-//           paintController: _controller,
-//         ),
-//       ),
-
-//       /*
-//        * floatingActionButton
-//        */
-//       floatingActionButton: Column(
-//         mainAxisAlignment: MainAxisAlignment.end,
-//         children: <Widget>[
-//           // undoボタン
-//           FloatingActionButton(
-//             heroTag: "undo",
-//             onPressed: () {
-//               if (_controller.canUndo) _controller.undo();
-//             },
-//             child: Text("undo"),
-//           ),
-
-//           SizedBox(
-//             height: 20.0,
-//           ),
-
-//           // redoボタン
-//           FloatingActionButton(
-//             heroTag: "redo",
-//             onPressed: () {
-//               if (_controller.canRedo) _controller.redo();
-//             },
-//             child: Text("redo"),
-//           ),
-
-//           SizedBox(
-//             height: 20.0,
-//           ),
-
-//           // クリアボタン
-//           FloatingActionButton(
-//             heroTag: "clear",
-//             onPressed: () => _controller.clear(),
-//             child: Text("clear"),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-// }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -219,11 +155,11 @@ class _PaintPageState extends State<PaintPage> {
 
           // redoボタン
           FloatingActionButton(
-            heroTag: "redo",
+            heroTag: "save",
             onPressed: () {
               if (_controller.canRedo) _controller.redo();
             },
-            child: Text("redo"),
+            child: Text("save"),
           ),
 
           SizedBox(

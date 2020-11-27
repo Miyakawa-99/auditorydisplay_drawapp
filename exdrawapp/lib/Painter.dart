@@ -30,7 +30,6 @@ class _PainterState extends State<Painter> {
         // カスタムペイント
         child: CustomPaint(
           willChange: true,
-
           // ペイント部分
           painter: _CustomPainter(
             widget.paintController._paintHistory,

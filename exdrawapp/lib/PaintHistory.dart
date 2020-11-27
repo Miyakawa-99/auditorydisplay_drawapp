@@ -16,6 +16,8 @@ class _PaintData {
  * ペイントの履歴を管理するクラス
  */
 class PaintHistory {
+  var xlist = List();
+  var ylist = List();
   // ペイントの履歴リスト
   List<MapEntry<_PaintData, Paint>> _paintList =
       List<MapEntry<_PaintData, Paint>>();
@@ -37,7 +39,7 @@ class PaintHistory {
   /*
    * redo可能か
    */
-  bool canRedo() => _undoneList.length > 0;
+  bool canRedo() => _paintList.length > 0;
 
   /*
    * undo
@@ -53,7 +55,8 @@ class PaintHistory {
    */
   void redo() {
     if (!_inDrag && canRedo()) {
-      _paintList.add(_undoneList.removeLast());
+      print("save");
+      print(xlist);
     }
   }
 
@@ -64,6 +67,8 @@ class PaintHistory {
     if (!_inDrag) {
       _paintList.clear();
       _undoneList.clear();
+      xlist.clear();
+      ylist.clear();
     }
   }
 
@@ -82,6 +87,7 @@ class PaintHistory {
       path.moveTo(startPoint.dx, startPoint.dy);
       _PaintData data = _PaintData(path: path);
       _paintList.add(MapEntry<_PaintData, Paint>(data, currentPaint));
+      print("start");
     }
   }
 
@@ -93,6 +99,9 @@ class PaintHistory {
       _PaintData data = _paintList.last.key;
       Path path = data.path;
       path.lineTo(nextPoint.dx, nextPoint.dy);
+      //print(nextPoint.dx);
+      xlist.add(nextPoint.dx);
+      ylist.add(nextPoint.dy);
     }
   }
 
