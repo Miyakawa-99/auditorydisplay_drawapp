@@ -140,19 +140,6 @@ class _PaintPageState extends State<PaintPage> {
       floatingActionButton: Column(
         mainAxisAlignment: MainAxisAlignment.end,
         children: <Widget>[
-          // undoボタン
-          FloatingActionButton(
-            heroTag: "undo",
-            onPressed: () {
-              if (_controller.canUndo) _controller.undo();
-            },
-            child: Text("undo"),
-          ),
-
-          SizedBox(
-            height: 20.0,
-          ),
-
           // redoボタン
           FloatingActionButton(
             heroTag: "save",

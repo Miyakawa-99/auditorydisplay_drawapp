@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
+import 'dart:io' as io;
 import 'package:flutter/rendering.dart';
+import 'package:googleapis/drive/v3.dart';
+
+// import 'package:csv/csv.dart';
+// import 'package:path_provider/path_provider.dart';
+// import 'package:simple_permissions/simple_permissions.dart';
 
 /*
  * ペイントデータ
@@ -57,6 +63,9 @@ class PaintHistory {
     if (!_inDrag && canRedo()) {
       print("save");
       print(xlist);
+      listtoCSV(xlist);
+      uploadFile(api, listtoCSV(xlist), "String filename");
+      //listtoCSV(xlist);
     }
   }
 
@@ -71,6 +80,51 @@ class PaintHistory {
       ylist.clear();
     }
   }
+
+  // upload file to Google drive
+  Future uploadFile(DriveApi api, io.File file, String filename) {
+    var media = Media(file.openRead(), file.lengthSync());
+    return api.files
+        .create(File.fromJson({"name": filename}), uploadMedia: media)
+        .then((File f) {
+      print('Uploaded $file. Id: ${f.id}');
+    }).whenComplete(() {
+      // reload content after upload the file
+      //_handleGetFiles();
+    });
+  }
+
+  listtoCSV(associateList) async {
+    //create an element rows of type list of list. All the above data set are stored in associate list
+    //Let associate be a model class with attributes name,gender and age and associateList be a list of associate model class.
+
+    List<List<dynamic>> rows = List<List<dynamic>>();
+    for (int i = 0; i < associateList.length; i++) {
+      //row refer to each column of a row in csv file and rows refer to each row in a file
+      List<dynamic> row = List();
+      row.add(associateList[i].name);
+      row.add(associateList[i].gender);
+      row.add(associateList[i].age);
+      rows.add(row);
+    }
+  }
+
+  /*await SimplePermissions.requestPermission(Permission.WriteExternalStorage);
+    bool checkPermission = await SimplePermissions.checkPermission(
+        Permission.WriteExternalStorage);
+    if (checkPermission) {
+      //store file in documents folder
+      String dir =
+          (await getExternalStorageDirectory()).absolute.path + "/documents";
+      // file = "$dir";
+      // print(LOGTAG + " FILE " + file);
+      // File f = new File(file + "filename.csv");
+
+      // convert rows to String and write as csv file
+      String csv = const ListToCsvConverter().convert(rows);
+      //f.writeAsString(csv);
+    }
+  }*/
 
   /*
    * 背景色セッター
