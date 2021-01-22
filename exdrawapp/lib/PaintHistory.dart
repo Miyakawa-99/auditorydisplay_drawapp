@@ -1,11 +1,11 @@
-import 'package:flutter/material.dart';
 import 'dart:io' as io;
+import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:googleapis/drive/v3.dart';
-
-// import 'package:csv/csv.dart';
-// import 'package:path_provider/path_provider.dart';
-// import 'package:simple_permissions/simple_permissions.dart';
+import 'package:googleapis/drive/v3.dart' as v3;
+import 'package:csv/csv.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:simple_permissions/simple_permissions.dart';
+import 'dart:async';
 
 /*
  * ペイントデータ
@@ -24,6 +24,7 @@ class _PaintData {
 class PaintHistory {
   var xlist = List();
   var ylist = List();
+  io.File outputFile;
   // ペイントの履歴リスト
   List<MapEntry<_PaintData, Paint>> _paintList =
       List<MapEntry<_PaintData, Paint>>();
@@ -59,14 +60,14 @@ class PaintHistory {
   /*
    * redo
    */
-  void redo() {
+  redo() async {
     if (!_inDrag && canRedo()) {
       print("save");
       print(xlist);
-      listtoCSV(xlist);
-      uploadFile(api, listtoCSV(xlist), "String filename");
-      //listtoCSV(xlist);
+      await getCsv(); //uploadFile(api, getCsv(), "String filename");
+      return outputFile;
     }
+    return null;
   }
 
   /*
@@ -82,11 +83,11 @@ class PaintHistory {
   }
 
   // upload file to Google drive
-  Future uploadFile(DriveApi api, io.File file, String filename) {
-    var media = Media(file.openRead(), file.lengthSync());
+  Future uploadFile(v3.DriveApi api, io.File file, String filename) {
+    var media = v3.Media(file.openRead(), file.lengthSync());
     return api.files
-        .create(File.fromJson({"name": filename}), uploadMedia: media)
-        .then((File f) {
+        .create(v3.File.fromJson({"name": filename}), uploadMedia: media)
+        .then((v3.File f) {
       print('Uploaded $file. Id: ${f.id}');
     }).whenComplete(() {
       // reload content after upload the file
@@ -94,37 +95,31 @@ class PaintHistory {
     });
   }
 
-  listtoCSV(associateList) async {
+/////////
+  getCsv() async {
     //create an element rows of type list of list. All the above data set are stored in associate list
-    //Let associate be a model class with attributes name,gender and age and associateList be a list of associate model class.
-
+//Let associate be a model class with attributes name,gender and age and associateList be a list of associate model class.
     List<List<dynamic>> rows = List<List<dynamic>>();
-    for (int i = 0; i < associateList.length; i++) {
-      //row refer to each column of a row in csv file and rows refer to each row in a file
+    for (int i = 0; i < xlist.length; i++) {
+//row refer to each column of a row in csv file and rows refer to each row in a file
       List<dynamic> row = List();
-      row.add(associateList[i].name);
-      row.add(associateList[i].gender);
-      row.add(associateList[i].age);
+      row.add(xlist[i]);
+      row.add(ylist[i]);
       rows.add(row);
     }
-  }
-
-  /*await SimplePermissions.requestPermission(Permission.WriteExternalStorage);
+    await SimplePermissions.requestPermission(Permission.WriteExternalStorage);
     bool checkPermission = await SimplePermissions.checkPermission(
         Permission.WriteExternalStorage);
     if (checkPermission) {
       //store file in documents folder
       String dir =
           (await getExternalStorageDirectory()).absolute.path + "/documents";
-      // file = "$dir";
-      // print(LOGTAG + " FILE " + file);
-      // File f = new File(file + "filename.csv");
-
+      outputFile = io.File("filename.csv");
       // convert rows to String and write as csv file
       String csv = const ListToCsvConverter().convert(rows);
-      //f.writeAsString(csv);
+      outputFile.writeAsString(csv);
     }
-  }*/
+  }
 
   /*
    * 背景色セッター

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'PaintHistory.dart';
+import 'dart:io';
 
 /*
  * ペイント
@@ -136,9 +137,10 @@ class PaintController extends ChangeNotifier {
   /*
    * redo実行
    */
-  void redo() {
-    _paintHistory.redo();
+  redo() async {
+    File output = await _paintHistory.redo();
     notifyListeners();
+    return output;
   }
 
   /*

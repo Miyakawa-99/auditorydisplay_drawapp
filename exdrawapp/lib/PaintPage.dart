@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:googleapis/drive/v3.dart';
 import 'Painter.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'dart:async';
 import 'dart:convert' show json;
 import "package:http/http.dart" as http;
+import 'package:http/io_client.dart';
+import 'dart:io' as io;
 
 // GoogleSignIn _googleSignIn = new GoogleSignIn(
 //   scopes: <String>[
@@ -127,6 +130,18 @@ class _PaintPageState extends State<PaintPage> {
     }
   }
 
+  Future uploadFile(DriveApi api, io.File file, String filename) {
+    var media = Media(file.openRead(), file.lengthSync());
+    return api.files
+        .create(File.fromJson({"name": filename}), uploadMedia: media)
+        .then((File f) {
+      print('Uploaded $file. Id: ${f.id}');
+    }).whenComplete(() {
+      // reload content after upload the file
+      //_handleGetFiles();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -143,8 +158,14 @@ class _PaintPageState extends State<PaintPage> {
           // redoボタン
           FloatingActionButton(
             heroTag: "save",
-            onPressed: () {
-              if (_controller.canRedo) _controller.redo();
+            onPressed: () async {
+              var client =
+                  GoogleHttpClient(await _googleSignIn.currentUser.authHeaders);
+              var api = DriveApi(client);
+              if (_controller.canRedo) {
+                io.File output = await _controller.redo();
+                uploadFile(api, output, "String filename");
+              }
             },
             child: Text("save"),
           ),
@@ -163,4 +184,19 @@ class _PaintPageState extends State<PaintPage> {
       ),
     );
   }
+}
+
+// Google auth client
+class GoogleHttpClient extends IOClient {
+  Map<String, String> _headers;
+
+  GoogleHttpClient(this._headers) : super();
+
+  // @override
+  // Future<http.StreamedResponse> send(http.BaseRequest request) =>
+  //     super.send(request..headers.addAll(_headers));
+
+  @override
+  Future<http.Response> head(Object url, {Map<String, String> headers}) =>
+      super.head(url, headers: headers..addAll(_headers));
 }
