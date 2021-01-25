@@ -7,8 +7,8 @@ import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/drive/v3.dart';
 import 'package:http/http.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:zoomable_image/zoomable_image.dart';
+//import 'package:image_picker/image_picker.dart';
+//import 'package:zoomable_image/zoomable_image.dart';
 import 'package:http/io_client.dart';
 
 GoogleSignIn _googleSignIn = new GoogleSignIn(
@@ -93,12 +93,12 @@ class MainScreenState extends State<MainScreen> {
             ),
             onTap: () async {
               var headers = await _googleSignIn.currentUser.authHeaders;
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) =>
-                        DetailScreen(data['files'][i], headers)),
-              );
+              // Navigator.push(
+              //   context,
+              //   MaterialPageRoute(
+              //       builder: (context) =>
+              //           DetailScreen(data['files'][i], headers)),
+              // );
             }),
       ]));
     }
@@ -122,16 +122,18 @@ class MainScreenState extends State<MainScreen> {
   }
 
   // Select or take a pic
-  Future getImage(ImageSource src) async {
-    var image = await ImagePicker.pickImage(source: src);
+  // Future getImage(ImageSource src) async {
+  //   final picker = ImagePicker();
+  //   File _image;
+  //   var image = picker.getImage(source: src);
+  //   _image = File(image.path);
+  //   var client = GoogleHttpClient(await _googleSignIn.currentUser.authHeaders);
+  //   var api = DriveApi(client);
 
-    var client = GoogleHttpClient(await _googleSignIn.currentUser.authHeaders);
-    var api = DriveApi(client);
-
-    uploadFile(api, image,
-            DateTime.now().toIso8601String().substring(0, 19) + ".jpg")
-        .whenComplete(() => client.close());
-  }
+  //   uploadFile(api, _image,
+  //           DateTime.now().toIso8601String().substring(0, 19) + ".jpg")
+  //       .whenComplete(() => client.close());
+  // }
 
   // upload file to Google drive
   Future uploadFile(DriveApi api, io.File file, String filename) {
@@ -258,7 +260,7 @@ class MainScreenState extends State<MainScreen> {
             child: Icon(Icons.add_photo_alternate),
             backgroundColor: Colors.green,
             onTap: () {
-              getImage(ImageSource.gallery);
+              //getImage(ImageSource.gallery);
             },
             label: 'Select',
             labelStyle: TextStyle(fontWeight: FontWeight.w500),
@@ -268,7 +270,7 @@ class MainScreenState extends State<MainScreen> {
             child: Icon(Icons.add_a_photo),
             backgroundColor: Colors.deepOrangeAccent,
             onTap: () {
-              getImage(ImageSource.camera);
+              //getImage(ImageSource.camera);
             },
             label: 'Camera',
             labelStyle: TextStyle(fontWeight: FontWeight.w500),
@@ -296,24 +298,24 @@ class GoogleHttpClient extends IOClient {
 }
 
 // Photo viewer
-class DetailScreen extends StatelessWidget {
-  var _data;
-  Map<String, String> _headers;
-  DetailScreen(this._data, this._headers);
+// class DetailScreen extends StatelessWidget {
+//   var _data;
+//   Map<String, String> _headers;
+//   DetailScreen(this._data, this._headers);
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-        appBar: AppBar(
-          title: Text(_data['name']),
-        ),
-        body: ZoomableImage(
-            NetworkImage(
-                "https://www.googleapis.com/drive/v3/files/" +
-                    _data['id'] +
-                    "?alt=media",
-                headers: _headers),
-            placeholder: Center(child: CircularProgressIndicator()),
-            backgroundColor: Colors.white));
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//         appBar: AppBar(
+//           title: Text(_data['name']),
+//         ),
+//         body: ZoomableImage(
+//             NetworkImage(
+//                 "https://www.googleapis.com/drive/v3/files/" +
+//                     _data['id'] +
+//                     "?alt=media",
+//                 headers: _headers),
+//             placeholder: Center(child: CircularProgressIndicator()),
+//             backgroundColor: Colors.white));
+//   }
+// }
