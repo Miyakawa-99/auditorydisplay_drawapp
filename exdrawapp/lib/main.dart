@@ -7,8 +7,7 @@ import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/drive/v3.dart';
 import 'package:http/http.dart';
-//import 'package:image_picker/image_picker.dart';
-//import 'package:zoomable_image/zoomable_image.dart';
+import 'Painter.dart';
 import 'package:http/io_client.dart';
 
 GoogleSignIn _googleSignIn = new GoogleSignIn(
@@ -33,6 +32,9 @@ class MainScreen extends StatefulWidget {
 
 class MainScreenState extends State<MainScreen> {
   GoogleSignInAccount _currentUser;
+  // コントローラ
+  PaintController _controller = PaintController();
+  String _contactText;
 
   @override
   void initState() {
@@ -166,8 +168,11 @@ class MainScreenState extends State<MainScreen> {
   Widget _buildBody() {
     if (_currentUser != null) {
       listView = ListView(children: itemList);
-      return RefreshIndicator(
-          onRefresh: _handleGetFiles, child: Scrollbar(child: listView));
+      return Container(
+        child: Painter(
+          paintController: _controller,
+        ),
+      );
     } else {
       return Center(
           child: SizedBox(
@@ -185,7 +190,7 @@ class MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     return new Scaffold(
         appBar: new AppBar(
-          title: const Text('Health Logger'),
+          title: const Text('ExApp'),
         ),
         drawer: _drawer(),
         body: new ConstrainedBox(
@@ -257,22 +262,21 @@ class MainScreenState extends State<MainScreen> {
         children: [
           // Select file
           SpeedDialChild(
-            child: Icon(Icons.add_photo_alternate),
+            child: Icon(Icons.save_alt_rounded),
             backgroundColor: Colors.green,
-            onTap: () {
-              //getImage(ImageSource.gallery);
+            onTap: () async {
+              await _controller.save();
             },
-            label: 'Select',
+            label: 'Save',
             labelStyle: TextStyle(fontWeight: FontWeight.w500),
           ),
-          // Take a picture
           SpeedDialChild(
-            child: Icon(Icons.add_a_photo),
+            child: Icon(Icons.delete),
             backgroundColor: Colors.deepOrangeAccent,
             onTap: () {
-              //getImage(ImageSource.camera);
+              _controller.undo();
             },
-            label: 'Camera',
+            label: 'Delete',
             labelStyle: TextStyle(fontWeight: FontWeight.w500),
           ),
         ],
