@@ -9,6 +9,7 @@ import 'package:googleapis/drive/v3.dart';
 import 'package:http/http.dart';
 import 'Painter.dart';
 import 'package:http/io_client.dart';
+import 'package:path_provider/path_provider.dart';
 
 GoogleSignIn _googleSignIn = new GoogleSignIn(
   scopes: <String>[
@@ -123,31 +124,37 @@ class MainScreenState extends State<MainScreen> {
     }
   }
 
-  // Select or take a pic
-  // Future getImage(ImageSource src) async {
-  //   final picker = ImagePicker();
-  //   File _image;
-  //   var image = picker.getImage(source: src);
-  //   _image = File(image.path);
-  //   var client = GoogleHttpClient(await _googleSignIn.currentUser.authHeaders);
-  //   var api = DriveApi(client);
-
-  //   uploadFile(api, _image,
-  //           DateTime.now().toIso8601String().substring(0, 19) + ".jpg")
-  //       .whenComplete(() => client.close());
-  // }
+  Future<String> get getDbPath async {
+    final dbDir =
+        await getApplicationDocumentsDirectory(); //ファイルが保存されている領域のパスを取得
+    return dbDir.path + "/filename.csv";
+  }
 
   // upload file to Google drive
-  Future uploadFile(DriveApi api, io.File file, String filename) {
+  Future uploadFile(DriveApi api, String filename) async {
+    showGeneralDialog(
+        context: context,
+        barrierDismissible: false,
+        transitionDuration: Duration(seconds: 2),
+        barrierColor: Colors.black.withOpacity(0.5),
+        pageBuilder: (BuildContext context, Animation animation,
+            Animation secondaryAnimation) {
+          return Center(
+            child: CircularProgressIndicator(),
+          );
+        });
+    File fileToUpload = File(); //ドライブ用のファイルのインスタンスを作成
+    fileToUpload.mimeType = "application/vnd.google-apps.spreadsheet";
+    fileToUpload.name = filename; //ファイルの名前をセット
+    fileToUpload.modifiedTime = DateTime.now().toUtc(); //アップロードの日付
+    var filePath = await getDbPath; //DBファイルのパスを関数で取得
+    var file = io.File(filePath);
     var media = Media(file.openRead(), file.lengthSync());
-    return api.files
-        .create(File.fromJson({"name": filename}), uploadMedia: media)
-        .then((File f) {
-      print('Uploaded $file. Id: ${f.id}');
-    }).whenComplete(() {
-      // reload content after upload the file
-      _handleGetFiles();
-    });
+    final result = await api.files.create(fileToUpload, uploadMedia: media);
+    print("Upload result: $result");
+    Navigator.pop(context); //ローディング画面を消す
+    //デバック用
+    print("ファイル保存が完了しました");
   }
 
   // items
@@ -265,7 +272,15 @@ class MainScreenState extends State<MainScreen> {
             child: Icon(Icons.save_alt_rounded),
             backgroundColor: Colors.green,
             onTap: () async {
+              var client =
+                  GoogleHttpClient(await _googleSignIn.currentUser.authHeaders);
+              var api = DriveApi(client);
               await _controller.save();
+              await uploadFile(
+                      api,
+                      DateTime.now().toIso8601String().substring(0, 19) +
+                          ".csv")
+                  .whenComplete(() => client.close());
             },
             label: 'Save',
             labelStyle: TextStyle(fontWeight: FontWeight.w500),
@@ -273,8 +288,11 @@ class MainScreenState extends State<MainScreen> {
           SpeedDialChild(
             child: Icon(Icons.delete),
             backgroundColor: Colors.deepOrangeAccent,
-            onTap: () {
+            onTap: () async {
               _controller.undo();
+              var filePath = await getDbPath; //DBファイルのパスを関数で取得
+              var file = io.File(filePath);
+              file.delete();
             },
             label: 'Delete',
             labelStyle: TextStyle(fontWeight: FontWeight.w500),
@@ -300,26 +318,3 @@ class GoogleHttpClient extends IOClient {
   Future<Response> head(Object url, {Map<String, String> headers}) =>
       super.head(url, headers: headers..addAll(_headers));
 }
-
-// Photo viewer
-// class DetailScreen extends StatelessWidget {
-//   var _data;
-//   Map<String, String> _headers;
-//   DetailScreen(this._data, this._headers);
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//         appBar: AppBar(
-//           title: Text(_data['name']),
-//         ),
-//         body: ZoomableImage(
-//             NetworkImage(
-//                 "https://www.googleapis.com/drive/v3/files/" +
-//                     _data['id'] +
-//                     "?alt=media",
-//                 headers: _headers),
-//             placeholder: Center(child: CircularProgressIndicator()),
-//             backgroundColor: Colors.white));
-//   }
-// }

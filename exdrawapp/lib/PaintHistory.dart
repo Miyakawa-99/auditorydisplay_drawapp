@@ -1,11 +1,9 @@
 import 'dart:io' as io;
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:googleapis/drive/v3.dart' as v3;
 import 'package:csv/csv.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:simple_permissions/simple_permissions.dart';
 import 'dart:async';
 
 /*
@@ -63,8 +61,11 @@ class PaintHistory {
    */
   redo() async {
     if (!_inDrag && canRedo()) {
-      print("save");
-      await getCsv(); //uploadFile(api, getCsv(), "String filename");
+      await getCsv();
+      _paintList.clear();
+      _undoneList.clear();
+      xlist.clear();
+      ylist.clear();
       return outputFile;
     }
     return null;

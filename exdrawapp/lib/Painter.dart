@@ -139,7 +139,6 @@ class PaintController extends ChangeNotifier {
    */
   save() async {
     File output = await _paintHistory.redo();
-    print("aa");
 
     ///notifyListeners();
     return output;
