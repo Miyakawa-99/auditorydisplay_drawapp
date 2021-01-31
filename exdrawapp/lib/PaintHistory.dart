@@ -23,6 +23,7 @@ class _PaintData {
 class PaintHistory {
   var xlist = List();
   var ylist = List();
+  var tlist = List();
   io.File outputFile;
   // ペイントの履歴リスト
   List<MapEntry<_PaintData, Paint>> _paintList =
@@ -37,6 +38,8 @@ class PaintHistory {
   // カレントペイント
   Paint currentPaint;
 
+  bool firstTouch = true;
+  DateTime _startTime;
   /*
    * undo可能か
    */
@@ -54,6 +57,14 @@ class PaintHistory {
     if (!_inDrag && canUndo()) {
       _undoneList.add(_paintList.removeLast());
     }
+    if (!_inDrag) {
+      _paintList.clear();
+      _undoneList.clear();
+      xlist.clear();
+      ylist.clear();
+      tlist.clear();
+      firstTouch = true;
+    }
   }
 
   /*
@@ -66,21 +77,11 @@ class PaintHistory {
       _undoneList.clear();
       xlist.clear();
       ylist.clear();
+      tlist.clear();
+      firstTouch = true;
       return outputFile;
     }
     return null;
-  }
-
-  /*
-   * クリア
-   */
-  void clear() {
-    if (!_inDrag) {
-      _paintList.clear();
-      _undoneList.clear();
-      xlist.clear();
-      ylist.clear();
-    }
   }
 
   // upload file to Google drive
@@ -106,6 +107,7 @@ class PaintHistory {
       List<dynamic> row = List();
       row.add(xlist[i]);
       row.add(ylist[i]);
+      row.add(tlist[i]);
       rows.add(row);
     }
     io.Directory directory = await getApplicationDocumentsDirectory();
@@ -114,7 +116,6 @@ class PaintHistory {
     // convert rows to String and write as csv file
     String csv = const ListToCsvConverter().convert(rows);
     outputFile.writeAsString(csv);
-    //}
   }
 
   /*
@@ -133,7 +134,15 @@ class PaintHistory {
       _PaintData data = _PaintData(path: path);
       _paintList.add(MapEntry<_PaintData, Paint>(data, currentPaint));
       print("start");
+      if (firstTouch) {
+        _startTimer();
+        firstTouch = false;
+      }
     }
+  }
+
+  void _startTimer() {
+    _startTime = DateTime.now();
   }
 
   /*
@@ -144,9 +153,10 @@ class PaintHistory {
       _PaintData data = _paintList.last.key;
       Path path = data.path;
       path.lineTo(nextPoint.dx, nextPoint.dy);
-      //print(nextPoint.dx);
       xlist.add(nextPoint.dx);
       ylist.add(nextPoint.dy);
+      var now = DateTime.now();
+      tlist.add(now.difference(_startTime).inSeconds);
     }
   }
 

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert' show json;
 import 'dart:io' as io;
 
 import 'package:flutter/material.dart';
@@ -35,7 +34,6 @@ class MainScreenState extends State<MainScreen> {
   GoogleSignInAccount _currentUser;
   // コントローラ
   PaintController _controller = PaintController();
-  String _contactText;
 
   @override
   void initState() {
@@ -45,74 +43,10 @@ class MainScreenState extends State<MainScreen> {
         _currentUser = account;
       });
       if (_currentUser != null) {
-        _handleGetFiles();
+        //_handleGetFiles();
       }
     });
     _googleSignIn.signInSilently();
-  }
-
-  Future<Null> _handleGetFiles() async {
-    final Response response = await get(
-      'https://www.googleapis.com/drive/v3/files',
-      headers: await _currentUser.authHeaders,
-    );
-    if (response.statusCode != 200) {
-      print('Drive API ${response.statusCode} response: ${response.body}');
-      return;
-    }
-    final Map<String, dynamic> data = json.decode(response.body);
-    var tmpItemList = <Widget>[];
-    var size = MediaQuery.of(context).size;
-    var margin = 10;
-    var photoWidth = size.width - margin;
-    var photoHeight = 200.0;
-    for (var i = 0; i < data['files'].length; i++) {
-      print(data['files'][i]['name']);
-      print(data['files'][i]['id']);
-      tmpItemList.add(Column(children: <Widget>[
-        Text(data['files'][i]['name'],
-            style: TextStyle(
-              color: Colors.grey,
-              fontSize: 24.0,
-              fontWeight: FontWeight.bold,
-            )),
-        GestureDetector(
-            child: Card(
-              child: Center(
-                  child: FadeInImage(
-                placeholder: AssetImage('images/placeholder.png'),
-                image: NetworkImage(
-                    "https://www.googleapis.com/drive/v3/files/" +
-                        data['files'][i]['id'] +
-                        "?alt=media",
-                    headers: await _googleSignIn.currentUser.authHeaders),
-                fadeOutDuration: new Duration(milliseconds: 300),
-                fadeOutCurve: Curves.decelerate,
-                height: photoHeight,
-                width: photoWidth,
-                fit: BoxFit.fitWidth,
-              )),
-              elevation: 3.0,
-            ),
-            onTap: () async {
-              var headers = await _googleSignIn.currentUser.authHeaders;
-              // Navigator.push(
-              //   context,
-              //   MaterialPageRoute(
-              //       builder: (context) =>
-              //           DetailScreen(data['files'][i], headers)),
-              // );
-            }),
-      ]));
-    }
-
-    // replace listview content
-    setState(() {
-      if (tmpItemList.length > 0) {
-        itemList = tmpItemList;
-//        listView = ListView(children: itemList);
-      }
-    });
   }
 
   // google sign in

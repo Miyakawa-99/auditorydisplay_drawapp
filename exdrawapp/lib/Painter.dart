@@ -160,12 +160,4 @@ class PaintController extends ChangeNotifier {
   void _notifyListeners() {
     notifyListeners();
   }
-
-  /*
-   * クリア
-   */
-  void clear() {
-    _paintHistory.clear();
-    notifyListeners();
-  }
 }
