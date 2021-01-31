@@ -133,6 +133,7 @@ class MainScreenState extends State<MainScreen> {
         appBar: new AppBar(
           title: const Text('ExApp'),
         ),
+        drawerEdgeDragWidth: 0,
         drawer: _drawer(),
         body: new ConstrainedBox(
           constraints: const BoxConstraints.expand(),
